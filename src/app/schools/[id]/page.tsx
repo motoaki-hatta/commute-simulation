@@ -5,14 +5,17 @@ import { MapPin, Clock, Train, Star, ArrowRight } from 'lucide-react'
 import { calculateCommuteScore } from '@/utils/commute-calculator'
 import SchoolMapWrapper from '@/components/Map/SchoolMapWrapper'
 
+// 型定義を修正
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>; // Promise型に修正
 }
 
 export default async function SchoolDetailPage({ params }: Props) {
+  const { id } = await params; // await を追加
+  
   // 学校の詳細情報を取得（schoolStationsとstationのリレーション含む）
   const school = await prisma.school.findUnique({
-    where: { id: params.id },
+    where: { id: id },
     include: {
       schoolStations: {
         include: {
