@@ -1,5 +1,57 @@
 // Prismaから生成された型をインポート
-import type { School, Station, Line, SchoolStation, StationConnection } from '@/generated/prisma'
+// 注: 型は直接定義して使用する（Prismaクライアントから推論）
+
+// 基本的なPrismaモデルの型定義（スキーマから推論）
+interface School {
+  id: string
+  name: string
+  prefecture: string
+  address: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+interface Station {
+  id: string
+  name: string
+  prefecture: string
+  latitude: number
+  longitude: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+interface Line {
+  id: string
+  name: string
+  operator: string
+  color?: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+interface SchoolStation {
+  id: string
+  schoolId: string
+  stationId: string
+  walkingTime: number
+  distance: number
+  isPrimary: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+interface StationConnection {
+  id: string
+  fromStationId: string
+  toStationId: string
+  lineId: string
+  travelTime: number
+  distance: number
+  fare: number
+  createdAt: Date
+  updatedAt: Date
+}
 
 // 時間帯別データの型定義
 export interface TimeSlotInfo {
