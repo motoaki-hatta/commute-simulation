@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 学校テーブル
+model School {
+  id          String   @id @default(cuid())
+  name        String
+  prefecture  String
+  address     String
+  latitude    Float?
+  longitude   Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 学校と駅の関係（複数の最寄り駅がある場合もあるため）
+  schoolStations SchoolStation[]
+  
+  @@map("schools")
+}
+
+// 駅テーブル
+model Station {
+  id          String   @id @default(cuid())
+  name        String
+  prefecture  String
+  latitude    Float
+  longitude   Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 駅と路線の関係
+  stationLines StationLine[]
+  // 学校との関係
+  schoolStations SchoolStation[]
+  // 駅間の接続（出発駅として）
+  departureConnections StationConnection[] @relation("DepartureStation")
+  // 駅間の接続（到着駅として）
+  arrivalConnections   StationConnection[] @relation("ArrivalStation")
+  
+  @@map("stations")
+}
+
+// 路線テーブル
+model Line {
+  id               String   @id @default(cuid())
+  name             String
+  operator         String   // 運営会社
+  lineColor        String?  // 路線カラー
+  frequencyWeekday Int      // 平日運行本数（1時間あたり）
+  frequencyWeekend Int      // 休日運行本数（1時間あたり）
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // 駅と路線の関係
+  stationLines StationLine[]
+  // 駅間接続
+  stationConnections StationConnection[]
+  
+  @@map("lines")
+}
+
+// 駅-路線の中間テーブル（駅がどの路線に所属するか）
+model StationLine {
+  id        String   @id @default(cuid())
+  stationId String
+  lineId    String
+  order     Int      // 路線上での駅の順序
+  createdAt DateTime @default(now())
+  
+  station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  line    Line    @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  
+  @@unique([stationId, lineId])
+  @@map("station_lines")
+}
+
+// 学校-駅の関係テーブル
+model SchoolStation {
+  id          String   @id @default(cuid())
+  schoolId    String
+  stationId   String
+  walkingTime Int      // 徒歩時間（分）
+  distance    Float    // 距離（km）
+  isPrimary   Boolean  @default(false) // 主要な最寄り駅かどうか
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  school  School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  station Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  
+  @@unique([schoolId, stationId])
+  @@map("school_stations")
+}
+
+// 駅間接続テーブル（所要時間など）
+model StationConnection {
+  id              String   @id @default(cuid())
+  departureId     String   // 出発駅
+  arrivalId       String   // 到着駅
+  lineId          String   // 使用路線
+  travelTime      Int      // 移動時間（分）
+  distance        Float    // 距離（km）
+  fare            Int?     // 運賃（円）
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  departureStation Station @relation("DepartureStation", fields: [departureId], references: [id], onDelete: Cascade)
+  arrivalStation   Station @relation("ArrivalStation", fields: [arrivalId], references: [id], onDelete: Cascade)
+  line             Line    @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  
+  // 時間帯別データとの関係
+  timeSlotData TimeSlotData[]
+  
+  @@unique([departureId, arrivalId, lineId])
+  @@map("station_connections")
+}
+
+// 時間帯別運行データテーブル
+model TimeSlotData {
+  id                String   @id @default(cuid())
+  connectionId      String   // 駅間接続ID
+  timeSlot          String   // 時間帯（例: "07:00-08:00", "08:00-09:00"）
+  dayType           String   // 曜日タイプ（weekday, weekend, holiday）
+  crowdLevel        Int      // 混雑度（1-5: 1=空いている, 5=非常に混雑）
+  frequency         Int      // 運行頻度（1時間あたりの本数）
+  averageDelay      Int      // 平均遅延時間（分）
+  reliabilityScore  Float    // 定時性スコア（0.0-1.0: 1.0=完全に定時）
+  comfortScore      Float    // 快適性スコア（0.0-1.0: 混雑度と設備を総合評価）
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  connection StationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  
+  @@unique([connectionId, timeSlot, dayType])
+  @@map("time_slot_data")
+}
