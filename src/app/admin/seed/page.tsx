@@ -4,9 +4,19 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 
+interface SeedResult {
+  success: boolean;
+  message: string;
+  data?: {
+    schools: number;
+    stations: number;
+    lines: number;
+  };
+}
+
 export default function SeedPage() {
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<{ success: boolean; message: string; data?: any } | null>(null)
+  const [result, setResult] = useState<SeedResult | null>(null)
 
   const handleSeedData = async () => {
     setLoading(true)
@@ -20,9 +30,9 @@ export default function SeedPage() {
         },
       })
 
-      const data = await response.json()
+      const data: SeedResult = await response.json()
       setResult(data)
-    } catch (error) {
+    } catch (error: unknown) {
       setResult({
         success: false,
         message: 'ネットワークエラーが発生しました'

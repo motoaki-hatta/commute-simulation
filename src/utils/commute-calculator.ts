@@ -44,7 +44,8 @@ export function calculateCommuteScore(
  */
 export function generateCommuteRoutes(
   school: SchoolWithStations,
-  fromStationId: string
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _fromStationId: string
 ): CommuteRoute[] {
   // ここでは簡略版の実装
   // 実際の実装では、駅間接続データを使って最適なルートを計算
