@@ -16,7 +16,7 @@ export async function GET() {
     // deleteMany()を削除し、createMany()のみ実行
 
     // 路線データを作成
-    const lines = await prisma.line.createMany({
+    await prisma.line.createMany({
       data: [
         {
           name: 'JR山手線',
@@ -65,7 +65,7 @@ export async function GET() {
     const keioLine = lineData.find(l => l.name === '京王線')!
 
     // 駅データを作成
-    const stations = await prisma.station.createMany({
+    await prisma.station.createMany({
       data: [
         // JR山手線の駅
         { name: '新宿駅', prefecture: '東京都', latitude: 35.6896, longitude: 139.7006 },
