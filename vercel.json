@@ -1,8 +1,5 @@
 {
   "buildCommand": "npx prisma generate && next build",
-  "env": {
-    "DATABASE_URL": "file:///var/task/prisma/dev.db"
-  },
   "functions": {
     "src/app/api/**": {
       "maxDuration": 10
