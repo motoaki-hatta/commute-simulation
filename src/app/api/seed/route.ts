@@ -1,15 +1,19 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
-export async function POST() {
+export async function GET() {
   try {
-    // 既存データをクリア
-    await prisma.stationConnection.deleteMany()
-    await prisma.schoolStation.deleteMany()
-    await prisma.stationLine.deleteMany()
-    await prisma.school.deleteMany()
-    await prisma.station.deleteMany()
-    await prisma.line.deleteMany()
+    // 既にデータが存在するかチェック
+    const existingSchools = await prisma.school.count()
+    if (existingSchools > 0) {
+      return NextResponse.json({ 
+        message: 'Database already seeded', 
+        schools: existingSchools 
+      })
+    }
+
+    // 以下、既存のseed処理...
+    // deleteMany()を削除し、createMany()のみ実行
 
     // 路線データを作成
     const lines = await prisma.line.createMany({
