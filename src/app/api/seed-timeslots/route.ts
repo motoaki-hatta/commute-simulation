@@ -3,8 +3,14 @@ import { NextResponse } from 'next/server'
 
 export async function POST() {
   try {
-    // 既存の時間帯別データをクリア
-    await prisma.timeSlotData.deleteMany()
+    // 既にデータが存在するかチェック
+    const existingTimeSlots = await prisma.timeSlotData.count()
+    if (existingTimeSlots > 0) {
+      return NextResponse.json({ 
+        message: 'Time slot data already seeded', 
+        timeSlots: existingTimeSlots 
+      })
+    }
 
     // 全ての駅間接続を取得
     const connections = await prisma.stationConnection.findMany({

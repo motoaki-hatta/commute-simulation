@@ -3,16 +3,22 @@ import { NextResponse } from 'next/server'
 
 export async function POST() {
   try {
-    // 既存の駅間接続データをクリア
-    await prisma.stationConnection.deleteMany()
+    // 既にデータが存在するかチェック
+    const existingConnections = await prisma.stationConnection.count()
+    if (existingConnections > 0) {
+      return NextResponse.json({ 
+        message: 'Station connections already seeded', 
+        connections: existingConnections 
+      })
+    }
 
     // 駅と路線のIDを取得
     const stations = await prisma.station.findMany()
     const lines = await prisma.line.findMany()
 
     // 駅名でマッピング
-    const stationMap = Object.fromEntries(stations.map(s => [s.name, s.id]))
-    const lineMap = Object.fromEntries(lines.map(l => [l.name, l.id]))
+    const stationMap = Object.fromEntries(stations.map((s: any) => [s.name, s.id]))
+    const lineMap = Object.fromEntries(lines.map((l: any) => [l.name, l.id]))
 
     // 包括的な駅間接続データ
     const connections = [
